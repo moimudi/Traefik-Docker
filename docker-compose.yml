@@ -1,0 +1,40 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "simple-service"
+    labels:
+      - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+
+
+  opencv-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: "always"
+    deploy:
+      mode: replicated
+      replicas: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.java-app.rule=Host(`opencv-app.docker.localhost`)"
+
+
+
+# localhost:8080
+# opencv-app.docker.localhost
